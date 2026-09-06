@@ -18,6 +18,10 @@ final class InputController {
     private(set) var moveVector = SIMD2<Float>(repeating: 0)
     private(set) var lookDelta = SIMD2<Float>(repeating: 0)
     private(set) var firing = false
+
+    /// True for one frame after any new touch landed anywhere on screen.
+    /// Used by the death screen ("TAP TO REDEPLOY"). Cleared by endFrame().
+    private(set) var freshTouch = false
     private(set) var aiming = false
     private(set) var sprinting = false
     private(set) var jumpQueued = false
@@ -80,6 +84,7 @@ final class InputController {
     // MARK: - Touch handling
 
     func touchesBegan(_ touches: Set<UITouch>) {
+        if !touches.isEmpty { freshTouch = true }
         for touch in touches {
             let point = touch.location(in: touch.view)
 
@@ -179,6 +184,7 @@ final class InputController {
     /// Called once per frame by the game loop.
     func endFrame() {
         lookDelta = SIMD2<Float>(repeating: 0)
+        freshTouch = false
         jumpQueued = false
         reloadQueued = false
         weaponCycleQueued = 0

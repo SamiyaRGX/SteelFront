@@ -248,12 +248,12 @@ final class GameViewController: UIViewController {
 
     private func updateInputAndPlayer(dt: Float) {
         guard !isDead else {
-            // Require a fresh press so holding fire does not restart every frame.
-            if input.firing, !wasFiringWhenDead {
-                wasFiringWhenDead = true
+            // "TAP TO REDEPLOY": any brand new touch restarts the run.
+            // Touches already held at the moment of death do not count, so
+            // there is no accidental instant restart.
+            if input.freshTouch {
                 resetRun()
             }
-            if !input.firing { wasFiringWhenDead = false }
             input.endFrame()
             return
         }

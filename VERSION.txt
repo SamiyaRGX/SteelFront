@@ -1,1 +1,1 @@
-v8 - noise() rewritten as pure Float math (built 2026-09-06)
+v9 - MSAA disabled (pipeline mismatch), restart on any tap (built 2026-09-06)

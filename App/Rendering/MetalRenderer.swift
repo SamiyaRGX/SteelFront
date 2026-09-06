@@ -220,8 +220,11 @@ final class MetalRenderer {
         }
         textureSize = CGSize(width: pixelWidth, height: pixelHeight)
 
-        sampleCount = view.sampleCount > 1 && device.supportsTextureSampleCount(view.sampleCount)
-            ? view.sampleCount : 1
+        // Every scene pipeline is created with rasterSampleCount = 1, so the
+        // scene framebuffer must not be multisampled. MTKView defaults to 4x
+        // MSAA, which caused undefined (glitched) rendering on device.
+        _ = view
+        sampleCount = 1
 
         let colour = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .rgba16Float,
                                                               width: pixelWidth,
