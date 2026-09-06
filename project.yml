@@ -10,6 +10,9 @@
 name: SteelFront
 options:
   bundleIdPrefix: com.steelfront
+  # CI runs Xcode 15.4, which cannot read the Xcode 16 project format (77)
+  # that recent XcodeGen versions emit by default. Pin the classic format.
+  objectVersion: 56
   deploymentTarget:
     iOS: "16.0"
   createIntermediateGroups: true
