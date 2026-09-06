@@ -1,0 +1,83 @@
+name: Unzip and Build
+
+on:
+  push:
+    paths:
+      - 'steelfront.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    name: Extract source into repo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract
+        run: |
+          unzip -o steelfront.zip -d .
+          rm -f steelfront.zip
+
+      - name: Commit source (never touching workflow files)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset -- .github
+          if git diff --cached --quiet; then
+            echo "Nothing to commit"
+          else
+            git commit -m "Extract SteelFront source"
+            git push
+          fi
+
+  build:
+    name: Build unsigned IPA
+    runs-on: macos-14
+    needs: unpack
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get project source (from zip if present, else from repo)
+        run: |
+          if [ -f steelfront.zip ]; then
+            unzip -o steelfront.zip -d .
+          fi
+
+      - name: Run logic tests
+        run: swift test --parallel
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Archive (unsigned)
+        run: |
+          xcodebuild archive \
+            -project SteelFront.xcodeproj \
+            -scheme SteelFront \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/SteelFront.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM=""
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/SteelFront.xcarchive/Products/Applications/SteelFront.app Payload/
+          zip -qr SteelFront-unsigned.ipa Payload
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SteelFront-unsigned-ipa
+          path: SteelFront-unsigned.ipa
+          retention-days: 30
