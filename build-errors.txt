@@ -1,0 +1,4 @@
+Run: 12 (attempt 1) - Sun Sep  6 21:38:06 UTC 2026
+-----
+** ARCHIVE FAILED **
+/Users/runner/work/SteelFront/SteelFront/App/Audio/AudioEngine.swift:190:50: error: cannot convert value of type 'UInt64' to expected argument type 'NSNumber'
