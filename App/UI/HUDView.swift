@@ -336,8 +336,8 @@ final class HUDView: UIView {
         for (index, entry) in state.killFeed.prefix(5).enumerated() {
             let alpha = clamp(1 - entry.age / 3.2, 0, 1)
             let colour = entry.isHeadshot
-                ? UIColor(red: 1, green: 0.78, blue: 0.25, alpha: alpha)
-                : UIColor(white: 0.92, alpha: alpha * 0.9)
+                ? UIColor(red: 1, green: 0.78, blue: 0.25, alpha: CGFloat(alpha))
+                : UIColor(white: 0.92, alpha: CGFloat(alpha) * 0.9)
             drawText(entry.text, at: CGPoint(x: bounds.width - 22, y: y + CGFloat(index) * 17),
                      size: 12, colour: colour, rightAlignedAt: bounds.width - 22)
         }

@@ -81,72 +81,72 @@ final class AudioEngine {
             case .shotLight:
                 return (0.22, { t, n in
                     let env = exp(-Float(t) / Float(n) * 14)
-                    return (noise() * 0.9 + sinf(Float(t) * 0.09) * 0.4) * env
+                    return (self.noise() * 0.9 + sinf(Float(t) * 0.09) * 0.4) * env
                 })
             case .shotRifle:
                 return (0.30, { t, n in
                     let env = exp(-Float(t) / Float(n) * 11)
-                    return (noise() * 1.0 + sinf(Float(t) * 0.06) * 0.6) * env
+                    return (self.noise() * 1.0 + sinf(Float(t) * 0.06) * 0.6) * env
                 })
             case .shotShotgun:
                 return (0.55, { t, n in
                     let env = exp(-Float(t) / Float(n) * 6)
-                    return (noise() * 1.2 + sinf(Float(t) * 0.035) * 0.9) * env
+                    return (self.noise() * 1.2 + sinf(Float(t) * 0.035) * 0.9) * env
                 })
             case .shotSniper:
                 return (0.70, { t, n in
                     let env = exp(-Float(t) / Float(n) * 5)
                     let crack = exp(-Float(t) / Float(n) * 40) * sinf(Float(t) * 0.22)
-                    return (noise() * 0.8 + crack * 1.4 + sinf(Float(t) * 0.02) * 0.7) * env
+                    return (self.noise() * 0.8 + crack * 1.4 + sinf(Float(t) * 0.02) * 0.7) * env
                 })
             case .shotLauncher:
                 return (0.45, { t, n in
                     let env = exp(-Float(t) / Float(n) * 7)
-                    return (noise() * 0.7 + sinf(Float(t) * 0.04) * 0.8) * env
+                    return (self.noise() * 0.7 + sinf(Float(t) * 0.04) * 0.8) * env
                 })
             case .shotRail:
                 return (0.60, { t, n in
                     let env = exp(-Float(t) / Float(n) * 6)
                     let sweep = sinf(Float(t) * (0.3 - Float(t) / Float(n) * 0.2))
-                    return (noise() * 0.35 + sweep * 0.9) * env
+                    return (self.noise() * 0.35 + sweep * 0.9) * env
                 })
             case .explosion:
                 return (1.30, { t, n in
                     let env = exp(-Float(t) / Float(n) * 4)
                     let rumble = sinf(Float(t) * 0.012) + sinf(Float(t) * 0.007) * 0.6
-                    return (noise() * 0.7 + rumble * 0.8) * env
+                    return (self.noise() * 0.7 + rumble * 0.8) * env
                 })
             case .impact:
                 return (0.10, { t, n in
                     let env = exp(-Float(t) / Float(n) * 30)
-                    return noise() * env
+                    return self.noise() * env
                 })
             case .flesh:
                 return (0.16, { t, n in
                     let env = exp(-Float(t) / Float(n) * 18)
-                    return (noise() * 0.5 + sinf(Float(t) * 0.05) * 0.5) * env
+                    return (self.noise() * 0.5 + sinf(Float(t) * 0.05) * 0.5) * env
                 })
             case .headshot:
                 return (0.22, { t, n in
                     let env = exp(-Float(t) / Float(n) * 16)
                     let tone = sinf(Float(t) * (t < n / 2 ? 0.30 : 0.42))
-                    return (tone * 0.7 + noise() * 0.3) * env
+                    return (tone * 0.7 + self.noise() * 0.3) * env
                 })
             case .reload:
                 return (0.34, { t, n in
                     let first = Float(t) < Float(n) * 0.35
                     let env = exp(-Float(t % (n / 2)) / Float(n) * 40)
-                    return noise() * env * (first ? 0.9 : 0.6)
+                    return self.noise() * env * (first ? 0.9 : 0.6)
                 })
             case .dryFire:
                 return (0.06, { t, n in
                     let env = exp(-Float(t) / Float(n) * 45)
-                    return noise() * env * 0.7
+                    return self.noise() * env * 0.7
                 })
             case .hurt:
                 return (0.30, { t, n in
                     let env = exp(-Float(t) / Float(n) * 9)
-                    return (noise() * 0.4 + sinf(Float(t) * 0.03) * 0.8) * env
+                    return (self.noise() * 0.4 + sinf(Float(t) * 0.03) * 0.8) * env
                 })
             case .pickup:
                 return (0.28, { t, n in
@@ -157,13 +157,13 @@ final class AudioEngine {
             case .drone:
                 return (0.50, { t, n in
                     let env = exp(-Float(t) / Float(n) * 3)
-                    return (noise() * 0.25 + sinf(Float(t) * 0.16) * 0.35) * env
+                    return (self.noise() * 0.25 + sinf(Float(t) * 0.16) * 0.35) * env
                 })
             case .death:
                 return (1.60, { t, n in
                     let env = exp(-Float(t) / Float(n) * 2.5)
                     let sweep = sinf(Float(t) * (0.14 - Float(t) / Float(n) * 0.10))
-                    return (sweep * 0.6 + noise() * 0.3) * env
+                    return (sweep * 0.6 + self.noise() * 0.3) * env
                 })
             }
         }()
@@ -187,7 +187,8 @@ final class AudioEngine {
 
     private func noise() -> Float {
         noiseState = noiseState &* 6364136223846793005 &+ 1442695040888963407
-        return Float(Int32(bitPattern: UInt32(truncating: noiseState >> 33))) / Float(Int32.max)
+        let bits = UInt32(truncating: noiseState >> 33)
+        return Float(Int32(bitPattern: bits)) / 2147483647.0
     }
 
     /// Naive resample used for pitch variation.

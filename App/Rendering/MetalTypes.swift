@@ -246,8 +246,8 @@ final class MeshBuilder {
         var lo = SIMD3<Float>(repeating: .greatestFiniteMagnitude)
         var hi = SIMD3<Float>(repeating: -.greatestFiniteMagnitude)
         for v in vertices {
-            lo = SIMD3(min(lo.x, v.position.x), min(lo.y, v.position.y), min(lo.z, v.position.z))
-            hi = SIMD3(max(hi.x, v.position.x), max(hi.y, v.position.y), max(hi.z, v.position.z))
+            lo = SIMD3(min(lo.x, v.px), min(lo.y, v.py), min(lo.z, v.pz))
+            hi = SIMD3(max(hi.x, v.px), max(hi.y, v.py), max(hi.z, v.pz))
         }
         let mesh = Mesh(vertexBuffer: vb, indexBuffer: ib, indexCount: indices.count)
         mesh.boundsMin = lo
