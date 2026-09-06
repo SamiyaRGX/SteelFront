@@ -207,7 +207,9 @@ final class TextureFactory {
                     colour = mix(colour, SIMD3(0.45, 0.28, 0.16), smoothstep(0.62, 0.9, rust) * 0.75)
                     let scratches = detail.value(u, v, frequency: 20)
                     colour += SIMD3(repeating: scratches > 0.93 ? 0.12 : 0)
-                    roughness = mix(0.35, 0.8, smoothstep(0.6, 0.9, rust))
+                    // Scalar blend: `lerp`, not `mix` (this file's `mix`
+                    // overloads are for colour vectors only).
+                    roughness = lerp(0.35, 0.8, smoothstep(0.6, 0.9, rust))
 
                 case MaterialTile.crate.rawValue:
                     let plank = floorf(v * 5)
