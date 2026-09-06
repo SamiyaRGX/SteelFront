@@ -77,17 +77,26 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             DEVELOPMENT_TEAM="" 2>&1 | tee xcodebuild.log
 
-      - name: Show build errors (if any)
+      - name: Publish build errors to repo
         if: failure()
         run: |
           {
-            echo "## Build errors"
-            echo '```'
-            grep -E "error:|Undefined symbols|ARCHIVE FAILED" xcodebuild.log 2>/dev/null | sort -u | head -40 || echo "No error lines found - check the Archive step log."
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "=== ERRORS ==="
-          grep -E "error:" xcodebuild.log 2>/dev/null | sort -u | head -40 || true
+            echo "Run: $GITHUB_RUN_NUMBER (attempt $GITHUB_RUN_ATTEMPT) - $(date -u)"
+            echo "-----"
+            grep -E "error:|Undefined symbols|ARCHIVE FAILED" xcodebuild.log 2>/dev/null | sort -u | head -80
+          } > /tmp/build-errors.txt
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --depth=1 origin main
+          git checkout -B main FETCH_HEAD
+          cp /tmp/build-errors.txt build-errors.txt
+          git add build-errors.txt
+          if git diff --cached --quiet; then
+            echo "build-errors.txt unchanged"
+          else
+            git commit -m "Publish build errors (run $GITHUB_RUN_NUMBER)"
+            git push origin main
+          fi
 
       - name: Package IPA
         run: |
