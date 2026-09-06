@@ -18,8 +18,12 @@ jobs:
 
       - name: Extract
         run: |
-          unzip -o steelfront.zip -d .
-          rm -f steelfront.zip
+          if [ -f steelfront.zip ]; then
+            unzip -o steelfront.zip -d .
+            rm -f steelfront.zip
+          else
+            echo "No zip in repo - building from committed source (manual run)."
+          fi
 
       - name: Commit source (never touching workflow files)
         run: |
@@ -46,6 +50,9 @@ jobs:
           if [ -f steelfront.zip ]; then
             unzip -o steelfront.zip -d .
           fi
+
+      - name: Show Xcode version
+        run: xcodebuild -version
 
       - name: Run logic tests
         run: swift test --parallel
