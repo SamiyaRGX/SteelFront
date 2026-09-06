@@ -65,6 +65,7 @@ jobs:
 
       - name: Archive (unsigned)
         run: |
+          set -o pipefail
           xcodebuild archive \
             -project SteelFront.xcodeproj \
             -scheme SteelFront \
@@ -74,7 +75,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            DEVELOPMENT_TEAM=""
+            DEVELOPMENT_TEAM="" 2>&1 | tee xcodebuild.log
+
+      - name: Show build errors (if any)
+        if: failure()
+        run: |
+          {
+            echo "## Build errors"
+            echo '```'
+            grep -E "error:|Undefined symbols|ARCHIVE FAILED" xcodebuild.log 2>/dev/null | sort -u | head -40 || echo "No error lines found - check the Archive step log."
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "=== ERRORS ==="
+          grep -E "error:" xcodebuild.log 2>/dev/null | sort -u | head -40 || true
 
       - name: Package IPA
         run: |
