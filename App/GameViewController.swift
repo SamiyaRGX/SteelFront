@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import QuartzCore
 import MetalKit
 import simd
 import AVFoundation

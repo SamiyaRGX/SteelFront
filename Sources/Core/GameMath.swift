@@ -145,14 +145,28 @@ public func makeVec4(_ x: Float, _ y: Float, _ z: Float, _ w: Float) -> Vec4 { V
 
 #endif
 
-#if !canImport(Darwin)
-/// glibc does not export `absf` to Swift; provide it so the shared code
-/// compiles unchanged on Linux (used by CI to run the logic tests).
+/// absf exists neither a C name on neither platform. Swift exposes it as/// `abs`. for Float. so define it universally without clashes.
 @inline(__always)
 public func absf(_ x: Float) -> Float { x < 0 ? -x : x }
-#endif
+
+/// Length of the horizontal (X/Z) part of a vector.
+@inline(__always)
+public func horizontalLength(_ v: Vec3) -> Float { sqrtf(v.x * v.x + v.z * v.z) }
 
 // MARK: - Common helpers (identical behaviour on every platform)
+
+#if canImport(simd)
+/// The hardware simd types don't ship `.identity` or `.xy` helpers that
+/// the Linux stand-ins have; add them here so one codebase compiles everywhere.
+public extension Mat4 {
+    static var identity: Mat4 { matrix_identity_float4x4 }
+}
+
+public extension SIMD3 where Scalar == Float {
+    var xy: SIMD2<Float> { SIMD2(x, y) }
+    var xz: SIMD2<Float> { SIMD2(x, z) }
+}
+#endif
 
 @inline(__always)
 public func dot(_ a: Vec3, _ b: Vec3) -> Float { a.x * b.x + a.y * b.y + a.z * b.z }

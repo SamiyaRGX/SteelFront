@@ -10,6 +10,7 @@
 
 import Foundation
 import UIKit
+import QuartzCore
 
 struct HUDState {
     var health: Float = 100

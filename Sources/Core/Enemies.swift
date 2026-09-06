@@ -245,7 +245,7 @@ public struct EnemyBrain {
 
         // Face the player (or the movement direction while searching).
         let faceTarget = enemy.hasLineOfSight ? toPlayer : enemy.velocity
-        if length(faceTarget.xy) > 0.01 {
+        if horizontalLength(faceTarget) > 0.01 {
             let desired = atan2f(faceTarget.x, faceTarget.z)
             enemy.yaw = dampAngle(enemy.yaw, desired, 8, dt)
         }
