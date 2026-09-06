@@ -1,0 +1,18 @@
+# Xcode / build
+*.xcodeproj/
+xcuserdata/
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.xcarchive
+Payload/
+
+# SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+
+# Misc
+.DS_Store
+*.log
