@@ -187,7 +187,11 @@ final class AudioEngine {
 
     private func noise() -> Float {
         noiseState = noiseState &* 6364136223846793005 &+ 1442695040888963407
-        let bits = UInt32(truncating: noiseState >> 33)
+        // Shift written as division: `>> 33` makes the iOS SDK compiler try
+        // to resolve a bogus NSNumber overload inside the generic
+        // `UInt32(truncating:)` context. Division is bit-for-bit identical.
+        let top = noiseState / 8589934592
+        let bits = UInt32(truncating: top)
         return Float(Int32(bitPattern: bits)) / 2147483647.0
     }
 
