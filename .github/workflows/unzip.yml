@@ -1,4 +1,4 @@
-name: Unzip Project
+name: Unzip and build Project
 
 on:
   push:
