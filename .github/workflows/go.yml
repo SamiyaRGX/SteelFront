@@ -79,23 +79,31 @@ jobs:
 
       - name: Publish build errors to repo
         if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           {
             echo "Run: $GITHUB_RUN_NUMBER (attempt $GITHUB_RUN_ATTEMPT) - $(date -u)"
-            echo "-----"
-            grep -E "error:|Undefined symbols|ARCHIVE FAILED" xcodebuild.log 2>/dev/null | sort -u | head -80
+            echo "----- errors with context -----"
+            grep -B1 -A3 "error:" xcodebuild.log 2>/dev/null | head -150 || true
+            echo "----- summary -----"
+            grep -E "Undefined symbols|ld: |ARCHIVE FAILED" xcodebuild.log 2>/dev/null | sort -u | head -20 || true
           } > /tmp/build-errors.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch --depth=1 origin main
-          git checkout -B main FETCH_HEAD
-          cp /tmp/build-errors.txt build-errors.txt
-          git add build-errors.txt
-          if git diff --cached --quiet; then
-            echo "build-errors.txt unchanged"
+          B64=$(base64 -i /tmp/build-errors.txt | tr -d '\n')
+          EXISTING_SHA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/build-errors.txt?ref=main" \
+            | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('sha',''))" || true)
+          if [ -n "$EXISTING_SHA" ]; then SHA_JSON=",\"sha\":\"$EXISTING_SHA\""; else SHA_JSON=""; fi
+          curl -s -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"message\":\"Publish build errors (run $GITHUB_RUN_NUMBER)\",\"branch\":\"main\",\"content\":\"$B64\"$SHA_JSON}" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/contents/build-errors.txt" \
+            > /tmp/put-result.json
+          if grep -q '"content"' /tmp/put-result.json; then
+            echo "build-errors.txt published OK"
           else
-            git commit -m "Publish build errors (run $GITHUB_RUN_NUMBER)"
-            git push origin main
+            echo "publish failed:"; cat /tmp/put-result.json
           fi
 
       - name: Package IPA
