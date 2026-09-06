@@ -156,10 +156,15 @@ public func horizontalLength(_ v: Vec3) -> Float { sqrtf(v.x * v.x + v.z * v.z) 
 // MARK: - Common helpers (identical behaviour on every platform)
 
 #if canImport(simd)
-/// The hardware simd types don't ship `.identity` or `.xy` helpers that
-/// the Linux stand-ins have; add them here so one codebase compiles everywhere.
+/// The hardware simd types don't ship `.identity`, `.xy` or a matrix *
+/// vector operator like the Linux stand-ins do; add them here so one
+/// codebase compiles everywhere.
 public extension Mat4 {
     static var identity: Mat4 { matrix_identity_float4x4 }
+
+    /// simd provides `*` for matrix * matrix but not for matrix * vector.
+    /// Route through `simd_mul` so `m * v` works on Apple platforms too.
+    static func * (m: Mat4, v: Vec4) -> Vec4 { simd_mul(m, v) }
 }
 
 public extension SIMD3 where Scalar == Float {
