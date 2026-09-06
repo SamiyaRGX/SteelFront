@@ -183,16 +183,15 @@ final class AudioEngine {
         return buffer
     }
 
-    private var noiseState: UInt64 = 0x1234_5678
+    private var noiseCounter: UInt64 = 0
 
+    /// Deterministic pseudo-random noise in -1...1, pure Float arithmetic.
+    /// (An LCG + `UInt32(truncating:)` form tripped an iOS SDK overload
+    /// resolution bug that demanded NSNumber, so it is avoided entirely.)
     private func noise() -> Float {
-        noiseState = noiseState &* 6364136223846793005 &+ 1442695040888963407
-        // Shift written as division: `>> 33` makes the iOS SDK compiler try
-        // to resolve a bogus NSNumber overload inside the generic
-        // `UInt32(truncating:)` context. Division is bit-for-bit identical.
-        let top = noiseState / 8589934592
-        let bits = UInt32(truncating: top)
-        return Float(Int32(bitPattern: bits)) / 2147483647.0
+        noiseCounter += 1
+        let s = sinf(Float(noiseCounter) * 12.9898) * 43758.5453
+        return (s - floorf(s)) * 2 - 1
     }
 
     /// Naive resample used for pitch variation.
