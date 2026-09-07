@@ -1,1 +1,1 @@
-v10 - composite viewport fix: full-screen static noise root cause (built 2026-09-06)
+v11 - FIX: vertex uniform/mesh buffer index collision (uniforms 0/1 -> 2/3) = the glitch root cause (built 2026-09-07)

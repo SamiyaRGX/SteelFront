@@ -314,8 +314,14 @@ final class MetalRenderer {
                                         height: Double(textureSize.height),
                                         znear: 0, zfar: 1))
 
+        // Binding convention (the vertex stage shares ONE table between mesh
+        // buffers and [[buffer(n)]] constants!): index 0 = mesh vertex buffers
+        // (per the vertex descriptors), index 2 = FrameUniforms, index 3 =
+        // DrawUniforms. Uniforms used to sit at 0/1, so every
+        // setVertexBuffer(index: 0) clobbered them and mesh draws transformed
+        // by garbage matrices (full screen glitch triangles).
         writeFrameUniforms(frame)
-        encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 0)
+        encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 2)
         encoder.setFragmentBytes(uniformScratch, length: FrameOffsets.size, index: 0)
         if let atlas = frame.atlas {
             encoder.setFragmentTexture(atlas, index: 0)
@@ -346,13 +352,13 @@ final class MetalRenderer {
             encoder.setDepthStencilState(depthAlways)
             encoder.setCullMode(.none)
             writeViewModelUniforms(frame)
-            encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 0)
+            encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 2)
             for draw in frame.viewModelDraws {
                 encode(draw: draw, encoder: encoder)
             }
             encoder.setCullMode(.back)
             writeFrameUniforms(frame)
-            encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 0)
+            encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 2)
             encoder.setFragmentBytes(uniformScratch, length: FrameOffsets.size, index: 0)
         }
 
@@ -385,7 +391,7 @@ final class MetalRenderer {
         writer.vec4(DrawOffsets.params, draw.params)
         writer.vec4(DrawOffsets.anim, draw.anim)
         writer.vec4(DrawOffsets.extra, draw.extra)
-        encoder.setVertexBytes(drawScratch, length: DrawOffsets.size, index: 1)
+        encoder.setVertexBytes(drawScratch, length: DrawOffsets.size, index: 3)
         encoder.setFragmentBytes(drawScratch, length: DrawOffsets.size, index: 1)
         draw.mesh.draw(encoder)
         lastFrameDrawCalls += 1

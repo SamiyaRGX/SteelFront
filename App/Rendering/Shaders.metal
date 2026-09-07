@@ -94,7 +94,7 @@ struct SkyOut {
     float2 ndc;
 };
 
-vertex SkyOut skyVertex(uint vid [[vertex_id]], constant FrameUniforms& F [[buffer(0)]]) {
+vertex SkyOut skyVertex(uint vid [[vertex_id]], constant FrameUniforms& F [[buffer(2)]]) {
     // Full screen triangle.
     float2 p = float2((vid << 1) & 2, vid & 2);
     SkyOut o;
@@ -142,8 +142,8 @@ fragment float4 skyFragment(SkyOut in [[stage_in]], constant FrameUniforms& F [[
 // MARK: - Lit geometry (level, props, pickups)
 
 vertex LitOut litVertex(VertexIn in [[stage_in]],
-                        constant FrameUniforms& F [[buffer(0)]],
-                        constant DrawUniforms& D [[buffer(1)]]) {
+                        constant FrameUniforms& F [[buffer(2)]],
+                        constant DrawUniforms& D [[buffer(3)]]) {
     float4 world = D.model * float4(in.position, 1.0);
     float3 normal = normalize((D.model * float4(in.normal, 0.0)).xyz);
 
@@ -216,8 +216,8 @@ fragment float4 litFragment(LitOut in [[stage_in]],
 // MARK: - Animated enemies
 
 vertex LitOut enemyVertex(VertexIn in [[stage_in]],
-                          constant FrameUniforms& F [[buffer(0)]],
-                          constant DrawUniforms& D [[buffer(1)]]) {
+                          constant FrameUniforms& F [[buffer(2)]],
+                          constant DrawUniforms& D [[buffer(3)]]) {
     float3 p = in.position * D.extra.z;
     float phase = D.anim.x;
     float move = D.anim.y;
@@ -319,8 +319,8 @@ vertex LitOut enemyVertex(VertexIn in [[stage_in]],
 // MARK: - First person weapon
 
 vertex LitOut viewModelVertex(VertexIn in [[stage_in]],
-                              constant FrameUniforms& F [[buffer(0)]],
-                              constant DrawUniforms& D [[buffer(1)]]) {
+                              constant FrameUniforms& F [[buffer(2)]],
+                              constant DrawUniforms& D [[buffer(3)]]) {
     float4 clip = D.model * float4(in.position, 1.0);
     LitOut o;
     o.position = F.viewProj * clip;
@@ -350,7 +350,7 @@ struct FXOut {
     float4 colour;
 };
 
-vertex FXOut fxVertex(FXVertexIn in [[stage_in]], constant FrameUniforms& F [[buffer(0)]]) {
+vertex FXOut fxVertex(FXVertexIn in [[stage_in]], constant FrameUniforms& F [[buffer(2)]]) {
     FXOut o;
     o.position = F.viewProj * float4(in.position, 1.0);
     o.uv = in.uv;
