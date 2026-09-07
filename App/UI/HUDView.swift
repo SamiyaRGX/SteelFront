@@ -42,6 +42,7 @@ struct HUDState {
     var isDead = false
     var bestScore = 0
     var fps = 0
+    var debugText: String?
 }
 
 struct KillFeedEntry {
@@ -160,11 +161,29 @@ final class HUDView: UIView {
         drawWeaponSlots(ctx)
         drawButtons(ctx)
         drawMoveStick(ctx)
+        if let debug = state.debugText { drawDebugText(ctx, text: debug) }
         if let notice = state.unlockedNotice { drawNotice(ctx, text: notice) }
         if state.isDead { drawDeathScreen(ctx) }
     }
 
     // MARK: Pieces
+
+    /// Temporary on-screen diagnostics: renderer / streaming health.
+    private func drawDebugText(_ ctx: CGContext, text: String) {
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.monospacedSystemFont(ofSize: 11, weight: .semibold),
+            .foregroundColor: UIColor(white: 1, alpha: 0.92)
+        ]
+        var y: CGFloat = 6
+        for line in text.components(separatedBy: "\n") {
+            let size = (line as NSString).size(withAttributes: attrs)
+            let rect = CGRect(x: 6, y: y, width: size.width + 10, height: size.height + 4)
+            ctx.setFillColor(UIColor(white: 0, alpha: 0.5).cgColor)
+            ctx.fill(rect)
+            (line as NSString).draw(at: CGPoint(x: 11, y: y + 2), withAttributes: attrs)
+            y = rect.maxY + 2
+        }
+    }
 
     private func drawDamageOverlay(_ ctx: CGContext) {
         let flash = CGFloat(state.damageFlash)

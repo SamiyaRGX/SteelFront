@@ -65,6 +65,9 @@ final class MetalRenderer {
     private var bloomB: MTLTexture?
     private var textureSize = CGSize.zero
     private var sampleCount = 1
+    /// Bound whenever a real texture is missing: sampling an unbound texture
+    /// is undefined on device (typically green / magenta garbage).
+    private let whitePixel: MTLTexture
 
     private let uniformScratch = UnsafeMutableRawPointer.allocate(byteCount: FrameOffsets.size,
                                                                   alignment: 16)
@@ -91,6 +94,17 @@ final class MetalRenderer {
               let compositeFragment = library.makeFunction(name: "compositeFragment")
         else { return nil }
         self.queue = queue
+
+        let whiteDesc = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .rgba8Unorm,
+                                                                 width: 1, height: 1,
+                                                                 mipmapped: false)
+        whiteDesc.usage = .shaderRead
+        whiteDesc.storageMode = .shared
+        guard let white = device.makeTexture(descriptor: whiteDesc) else { return nil }
+        var whiteBytes = [UInt8(255), 255, 255, 255]
+        white.replace(region: MTLRegion(origin: .init(), size: .init(width: 1, height: 1, depth: 1)),
+                      mipmapLevel: 0, withBytes: &whiteBytes, bytesPerRow: 4)
+        whitePixel = white
 
         let sceneDescriptor = VertexLayout.sceneDescriptor()
         let fxDescriptor = VertexLayout.fxDescriptor()
@@ -323,9 +337,7 @@ final class MetalRenderer {
         writeFrameUniforms(frame)
         encoder.setVertexBytes(uniformScratch, length: FrameOffsets.size, index: 2)
         encoder.setFragmentBytes(uniformScratch, length: FrameOffsets.size, index: 0)
-        if let atlas = frame.atlas {
-            encoder.setFragmentTexture(atlas, index: 0)
-        }
+        encoder.setFragmentTexture(frame.atlas ?? whitePixel, index: 0)
 
         // --- Sky ---
         encoder.setRenderPipelineState(skyPipeline)
@@ -363,8 +375,8 @@ final class MetalRenderer {
         }
 
         // --- Effects ---
-        if let sprite = frame.spriteSheet {
-            encoder.setFragmentTexture(sprite, index: 0)
+        do {
+            encoder.setFragmentTexture(frame.spriteSheet ?? whitePixel, index: 0)
             encoder.setDepthStencilState(depthReadOnly)
             if let alpha = frame.fxBatch.alpha, frame.fxBatch.alphaCount > 0 {
                 encoder.setRenderPipelineState(fxAlphaPipeline)

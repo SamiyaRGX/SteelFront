@@ -1,1 +1,1 @@
-v11 - FIX: vertex uniform/mesh buffer index collision (uniforms 0/1 -> 2/3) = the glitch root cause (built 2026-09-07)
+v12 - atlas single-level (no GPU mip chain), white fallback texture, on-screen diagnostics (built 2026-09-07)

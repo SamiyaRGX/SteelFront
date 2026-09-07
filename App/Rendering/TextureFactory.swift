@@ -141,8 +141,11 @@ final class TextureFactory {
             bakeTile(index: index, pixels: &pixels, originX: tileX, originY: tileY, size: tile)
         }
 
+        // Single level on purpose: a blit-generated mip chain was leaving the
+        // higher levels uninitialised on device, so any sampled LOD > 0
+        // returned garbage (green / magenta surfaces). One level cannot fail.
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: .rgba8Unorm, width: size, height: size, mipmapped: true)
+            pixelFormat: .rgba8Unorm, width: size, height: size, mipmapped: false)
         descriptor.usage = .shaderRead
         descriptor.storageMode = .shared
         guard let texture = device.makeTexture(descriptor: descriptor) else { return nil }
@@ -152,18 +155,7 @@ final class TextureFactory {
                             withBytes: raw.baseAddress!,
                             bytesPerRow: size * 4)
         }
-        generateMipmaps(for: texture)
         return texture
-    }
-
-    private func generateMipmaps(for texture: MTLTexture) {
-        guard let queue = device.makeCommandQueue(),
-              let buffer = queue.makeCommandBuffer(),
-              let blit = buffer.makeBlitCommandEncoder() else { return }
-        blit.generateMipmaps(for: texture)
-        blit.endEncoding()
-        buffer.commit()
-        buffer.waitUntilCompleted()
     }
 
     private func bakeTile(index: Int, pixels: inout [Pixel], originX: Int, originY: Int, size: Int) {

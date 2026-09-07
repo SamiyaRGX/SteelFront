@@ -800,6 +800,10 @@ final class GameViewController: UIViewController {
         hudState.isDead = isDead
         hudState.bestScore = bestScore
         hudState.fps = fps
+        hudState.debugText = [
+            "ATLAS \(textures?.atlas != nil ? "OK" : "NIL")  SPRITE \(textures?.spriteSheet != nil ? "OK" : "NIL")",
+            "CHUNKS \(streamer.loadedCount)  DRAWS \(renderer?.lastFrameDrawCalls ?? -1)  FOE \(enemies.count)"
+        ].joined(separator: "\n")
         hud.state = hudState
 
         hud.moveStickCenter = input.layout.moveCenter
