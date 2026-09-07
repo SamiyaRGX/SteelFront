@@ -433,6 +433,13 @@ final class MetalRenderer {
         pass.colorAttachments[0].loadAction = .dontCare
         pass.colorAttachments[0].storeAction = .store
         guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) else { return }
+        // Metal starts every encoder with a 0x0 viewport: without this the
+        // composite rasterises nothing and the screen shows uninitialised
+        // drawable memory (full screen static noise).
+        encoder.setViewport(MTLViewport(originX: 0, originY: 0,
+                                        width: Double(drawable.texture.width),
+                                        height: Double(drawable.texture.height),
+                                        znear: 0, zfar: 1))
         encoder.setRenderPipelineState(compositePipeline)
         encoder.setFragmentTexture(scene, index: 0)
         encoder.setFragmentTexture(bloomA, index: 1)
